@@ -32,7 +32,7 @@ cargo test
 
 ## When will I get bored?
 
-- [ ] Day1
+- [x] Day1
 - [ ] Day2
 - [ ] Day3
 - [ ] Day4
