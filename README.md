@@ -33,7 +33,11 @@ cargo test
 ## When will I get bored?
 
 - [x] Day1
+  - Part 1: 25.6µs @ 10000 samples
+  - Part 2: 23.1µs @ 10000 samples
 - [x] Day2
+  - Part 1: 4.9µs @ 10000 samples
+  - Part 2: 17.1µs @ 10000 samples
 - [ ] Day3
 - [ ] Day4
 - [ ] Day5
