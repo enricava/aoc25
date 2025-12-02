@@ -72,6 +72,11 @@ fn parse_range(range_str: &str) -> Range<u64> {
     Range { start, end }
 }
 
+/// Gets the sum of the "invalid ids" within the range.
+///
+/// Instead of generating every number within the [range], it generates only
+/// numbers which have [num_parts] of identical numbers, and then adds them only
+/// if they are within the [range].
 fn sum_invalids(range: &Range<u64>, num_parts: u8, set: &mut Option<&mut HashSet<u64>>) -> u64 {
     let mut sum = 0;
 
@@ -85,10 +90,16 @@ fn sum_invalids(range: &Range<u64>, num_parts: u8, set: &mut Option<&mut HashSet
 
         let part_size = digits / num_parts;
 
+        // Narrow the search by starting with the prefix of the range start and
+        // finish at the prefix of the end.
         let mut first_part = prefix(range.start, part_size);
         let mut last_part = prefix(range.end, part_size);
 
         if last_part < first_part {
+            // The prefix of the end of the range can be smaller than the prefix of
+            // the start in cases where it has more digits.
+            //
+            // In those cases, just semi-brute force it.
             first_part = u64::pow(10, part_size as u32 - 1);
             last_part = u64::pow(10, part_size as u32) - 1;
         }
