@@ -38,7 +38,9 @@ cargo test
 - [x] Day2
   - Part 1: 4.9µs @ 10000 samples
   - Part 2: 17.1µs @ 10000 samples
-- [ ] Day3
+- [x] Day3
+  - Part 1: 79.5µs @ 5043 samples
+  - Part 2: 129.5µs @ 5177 samples
 - [ ] Day4
 - [ ] Day5
 - [ ] Day6
