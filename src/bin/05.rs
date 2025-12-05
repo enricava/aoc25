@@ -1,6 +1,7 @@
-use std::cmp::Ordering::{self, Equal, Greater, Less};
-use std::cmp::{Reverse, max};
+use std::cmp::Ordering::{Equal, Greater, Less};
+use std::cmp::max;
 use std::collections::BinaryHeap;
+use std::str::Lines;
 
 advent_of_code::solution!(5);
 
@@ -35,39 +36,13 @@ pub fn part_one(input: &str) -> Option<u64> {
     let mut sol = 0;
 
     let mut lines = input.lines();
-    let mut sorted_ranges = BinaryHeap::new();
-
-    for line in &mut lines {
-        if line.is_empty() {
-            break;
-        }
-
-        sorted_ranges.push(parse_range(line));
-    }
-
-    let mut clean_ranges = Vec::new();
-
-    let sorted = sorted_ranges.into_sorted_vec();
-    let mut cur = sorted[0].clone();
-
-    sorted.iter().for_each(|next| {
-        if next.start <= cur.end {
-            cur.end = max(next.end, cur.end);
-        } else {
-            clean_ranges.push(cur.clone());
-
-            cur = next.clone();
-        }
-    });
-
-    if *clean_ranges.last().unwrap() != cur {
-        clean_ranges.push(cur);
-    }
+    let sorted_ranges = parse_ranges(&mut lines);
+    let unique_ranges = ranges_to_non_overlapping(sorted_ranges);
 
     for line in &mut lines {
         let num: u64 = line.parse().expect("number");
 
-        let found = clean_ranges
+        let found = unique_ranges
             .binary_search_by(|range| {
                 let start_cmp = range.start.cmp(&num);
                 let end_cmp = range.end.cmp(&num);
@@ -91,12 +66,22 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let mut sol = 0;
-
     let mut lines = input.lines();
+    let sorted_ranges = parse_ranges(&mut lines);
+    let unique_ranges = ranges_to_non_overlapping(sorted_ranges);
+
+    let mut sol = 0;
+    for range in unique_ranges {
+        sol += range.end - range.start + 1;
+    }
+
+    Some(sol)
+}
+
+fn parse_ranges(lines: &mut Lines) -> Vec<Range<u64>> {
     let mut sorted_ranges = BinaryHeap::new();
 
-    for line in &mut lines {
+    for line in lines {
         if line.is_empty() {
             break;
         }
@@ -104,30 +89,28 @@ pub fn part_two(input: &str) -> Option<u64> {
         sorted_ranges.push(parse_range(line));
     }
 
-    let mut clean_ranges = Vec::new();
+    sorted_ranges.into_sorted_vec()
+}
 
-    let sorted = sorted_ranges.into_sorted_vec();
-    let mut cur = sorted[0].clone();
+fn ranges_to_non_overlapping(sorted_ranges: Vec<Range<u64>>) -> Vec<Range<u64>> {
+    let mut unique = Vec::new();
+    let mut cur = sorted_ranges[0].clone();
 
-    sorted.iter().for_each(|next| {
+    sorted_ranges.iter().for_each(|next| {
         if next.start <= cur.end {
             cur.end = max(next.end, cur.end);
         } else {
-            clean_ranges.push(cur.clone());
+            unique.push(cur.clone());
 
             cur = next.clone();
         }
     });
 
-    if *clean_ranges.last().unwrap() != cur {
-        clean_ranges.push(cur);
+    if *unique.last().unwrap() != cur {
+        unique.push(cur);
     }
 
-    for range in clean_ranges {
-        sol += range.end - range.start + 1;
-    }
-
-    Some(sol)
+    unique
 }
 
 #[cfg(test)]
