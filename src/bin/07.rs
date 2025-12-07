@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 advent_of_code::solution!(7);
 
 #[derive(Debug, Clone)]
@@ -21,9 +19,6 @@ struct Cell {
     visited: bool,
 }
 
-#[derive(Debug)]
-struct CellTypeError;
-
 impl CellType {
     fn from_byte(b: u8) -> Self {
         match b {
@@ -41,16 +36,23 @@ pub fn part_one(input: &str) -> Option<u64> {
     let m = mat.len();
     let n = mat[0].len();
 
-    Some(count_splits_naive(&mut mat, &start, m, n))
+    Some(count_splits(&mut mat, &start, m, n))
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let (mut mat, start) = read_manifold(input);
+
+    let m = mat.len();
+    let n = mat[0].len();
+
+    Some(count_paths_naive(&mut mat, &start, m, n))
 }
 
-fn count_splits_naive(mat: &mut Vec<Vec<Cell>>, cur: &Coord, m: usize, n: usize) -> u64 {
+fn count_splits(mat: &mut Vec<Vec<Cell>>, cur: &Coord, m: usize, n: usize) -> u64 {
     let mut splits = 0;
+
     let cell = &mut mat[cur.i][cur.j];
+    cell.visited = true;
 
     let adjs = if cell.is_splitter {
         splits += 1;
@@ -65,13 +67,38 @@ fn count_splits_naive(mat: &mut Vec<Vec<Cell>>, cur: &Coord, m: usize, n: usize)
             let next = &mut mat[adj.i][adj.j];
 
             if !next.visited {
-                next.visited = true;
-                splits += count_splits_naive(mat, &adj, m, n);
+                splits += count_splits(mat, &adj, m, n);
+            }
+        }
+    }
+    splits
+}
+
+fn count_paths_naive(mat: &mut Vec<Vec<Cell>>, cur: &Coord, m: usize, n: usize) -> u64 {
+    let mut paths = u64::from(cur.i == m - 1);
+
+    let cell = &mut mat[cur.i][cur.j];
+    cell.visited = true;
+
+    let adjs = if cell.is_splitter {
+        vec![nextl(cur), nextr(cur)]
+    } else {
+        vec![next(cur)]
+    };
+
+    for adj in adjs {
+        if inside(&adj, m, n) {
+            let next = &mut mat[adj.i][adj.j];
+
+            if !next.visited {
+                paths += count_paths_naive(mat, &adj, m, n);
             }
         }
     }
 
-    splits
+    mat[cur.i][cur.j].visited = false;
+
+    paths
 }
 
 fn next(c: &Coord) -> Coord {
@@ -140,6 +167,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(40));
     }
 }
