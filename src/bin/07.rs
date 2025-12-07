@@ -13,12 +13,6 @@ enum CellType {
     Splitter,
 }
 
-#[derive(Debug, Clone)]
-struct Cell {
-    is_splitter: bool,
-    visited: bool,
-}
-
 impl CellType {
     fn from_byte(b: u8) -> Self {
         match b {
@@ -33,98 +27,69 @@ impl CellType {
 pub fn part_one(input: &str) -> Option<u64> {
     let (mut mat, start) = read_manifold(input);
 
-    let m = mat.len();
-    let n = mat[0].len();
-
-    Some(count_splits(&mut mat, &start, m, n))
+    Some(beam(&mut mat, &start).0)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
     let (mut mat, start) = read_manifold(input);
 
+    Some(beam(&mut mat, &start).1)
+}
+
+///
+/// p(i, j) = {
+///   i >= n || j >= m? 0,
+///   s(i - 1, j) ? p(i-1, j-1) + p(i-1, j+1) : p(i-1, j)
+/// }
+///
+/// therefore
+///
+/// p(i+1, j) = {
+///   s(i, j) ? p(i, j-1) + p(i, j+1) : p(i, j)
+/// }
+///
+/// only need one additional row.
+fn beam(mat: &mut Vec<Vec<CellType>>, start: &Coord) -> (u64, u64) {
     let m = mat.len();
     let n = mat[0].len();
 
-    Some(count_paths_naive(&mut mat, &start, m, n))
-}
-
-fn count_splits(mat: &mut Vec<Vec<Cell>>, cur: &Coord, m: usize, n: usize) -> u64 {
     let mut splits = 0;
 
-    let cell = &mut mat[cur.i][cur.j];
-    cell.visited = true;
+    let mut current = vec![0; n];
+    let mut next = vec![0; n];
 
-    let adjs = if cell.is_splitter {
-        splits += 1;
+    current[start.j] = 1;
 
-        vec![nextl(cur), nextr(cur)]
-    } else {
-        vec![next(cur)]
-    };
+    for i in 0..m {
+        let row = &mat[i];
 
-    for adj in adjs {
-        if inside(&adj, m, n) {
-            let next = &mut mat[adj.i][adj.j];
+        for (j, &count) in current.iter().enumerate() {
+            if count > 0 {
+                if row[j] == CellType::Splitter {
+                    splits += 1;
 
-            if !next.visited {
-                splits += count_splits(mat, &adj, m, n);
+                    if j - 1 < n {
+                        next[j - 1] += count;
+                    }
+
+                    if j + 1 < n {
+                        next[j + 1] += count;
+                    }
+                } else {
+                    next[j] += count;
+                }
             }
         }
-    }
-    splits
-}
 
-fn count_paths_naive(mat: &mut Vec<Vec<Cell>>, cur: &Coord, m: usize, n: usize) -> u64 {
-    let mut paths = u64::from(cur.i == m - 1);
-
-    let cell = &mut mat[cur.i][cur.j];
-    cell.visited = true;
-
-    let adjs = if cell.is_splitter {
-        vec![nextl(cur), nextr(cur)]
-    } else {
-        vec![next(cur)]
-    };
-
-    for adj in adjs {
-        if inside(&adj, m, n) {
-            let next = &mut mat[adj.i][adj.j];
-
-            if !next.visited {
-                paths += count_paths_naive(mat, &adj, m, n);
-            }
-        }
+        (current, next) = (next, current);
+        next.fill(0);
     }
 
-    mat[cur.i][cur.j].visited = false;
-
-    paths
+    (splits, current.iter().sum())
 }
 
-fn next(c: &Coord) -> Coord {
-    Coord { i: c.i + 1, j: c.j }
-}
-
-fn nextl(c: &Coord) -> Coord {
-    Coord {
-        i: c.i + 1,
-        j: c.j.overflowing_sub(1).0,
-    }
-}
-
-fn nextr(c: &Coord) -> Coord {
-    Coord {
-        i: c.i + 1,
-        j: c.j + 1,
-    }
-}
-
-fn inside(c: &Coord, m: usize, n: usize) -> bool {
-    return c.i < m && c.j < n;
-}
-
-fn read_manifold(input: &str) -> (Vec<Vec<Cell>>, Coord) {
-    let mut mat: Vec<Vec<Cell>> = Vec::new();
+fn read_manifold(input: &str) -> (Vec<Vec<CellType>>, Coord) {
+    let mut mat: Vec<Vec<CellType>> = Vec::new();
 
     let mut cur = Coord { i: 0, j: 0 };
     let mut start = Coord { i: 0, j: 0 };
@@ -135,14 +100,11 @@ fn read_manifold(input: &str) -> (Vec<Vec<Cell>>, Coord) {
         for b in line.bytes() {
             let t = CellType::from_byte(b);
 
-            row.push(Cell {
-                is_splitter: t == CellType::Splitter,
-                visited: false,
-            });
-
             if t == CellType::Source {
                 start = cur.clone();
             }
+
+            row.push(t);
 
             cur.j += 1;
         }
