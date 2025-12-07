@@ -1,41 +1,14 @@
 advent_of_code::solution!(7);
 
-#[derive(Debug, Clone)]
-struct Coord {
-    i: usize,
-    j: usize,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum CellType {
-    Empty,
-    Source,
-    Splitter,
-}
-
-impl CellType {
-    fn from_byte(b: u8) -> Self {
-        match b {
-            b'.' => CellType::Empty,
-            b'S' => CellType::Source,
-            b'^' => CellType::Splitter,
-            _ => unreachable!(),
-        }
-    }
-}
-
 pub fn part_one(input: &str) -> Option<u64> {
-    let (mut mat, start) = read_manifold(input);
-
-    Some(beam(&mut mat, &start).0)
+    Some(beam(input).0)
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let (mut mat, start) = read_manifold(input);
-
-    Some(beam(&mut mat, &start).1)
+    Some(beam(input).1)
 }
 
+/// Can make it faster if not parsing every byte.
 ///
 /// p(i, j) = {
 ///   i >= n || j >= m? 0,
@@ -49,23 +22,22 @@ pub fn part_two(input: &str) -> Option<u64> {
 /// }
 ///
 /// only need one additional row.
-fn beam(mat: &mut Vec<Vec<CellType>>, start: &Coord) -> (u64, u64) {
-    let m = mat.len();
-    let n = mat[0].len();
+fn beam(input: &str) -> (u64, u64) {
+    let lines: Vec<_> = input.lines().map(str::as_bytes).collect();
+    let start = lines[0].iter().position(|&b| b == b'S').expect("has start");
+    let n = lines[0].len();
 
     let mut splits = 0;
 
     let mut current = vec![0; n];
     let mut next = vec![0; n];
 
-    current[start.j] = 1;
+    current[start] = 1;
 
-    for i in 0..m {
-        let row = &mat[i];
-
+    for bytes in lines {
         for (j, &count) in current.iter().enumerate() {
             if count > 0 {
-                if row[j] == CellType::Splitter {
+                if bytes[j] == b'^' {
                     splits += 1;
 
                     if j - 1 < n {
@@ -86,34 +58,6 @@ fn beam(mat: &mut Vec<Vec<CellType>>, start: &Coord) -> (u64, u64) {
     }
 
     (splits, current.iter().sum())
-}
-
-fn read_manifold(input: &str) -> (Vec<Vec<CellType>>, Coord) {
-    let mut mat: Vec<Vec<CellType>> = Vec::new();
-
-    let mut cur = Coord { i: 0, j: 0 };
-    let mut start = Coord { i: 0, j: 0 };
-
-    for line in input.lines() {
-        let mut row = Vec::new();
-
-        for b in line.bytes() {
-            let t = CellType::from_byte(b);
-
-            if t == CellType::Source {
-                start = cur.clone();
-            }
-
-            row.push(t);
-
-            cur.j += 1;
-        }
-
-        mat.push(row);
-        cur.i += 1;
-    }
-
-    (mat, start.clone())
 }
 
 #[cfg(test)]
