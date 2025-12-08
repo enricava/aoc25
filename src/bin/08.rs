@@ -42,7 +42,12 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    None
+    let coords: Vec<_> = input
+        .lines()
+        .map(|line| Coord::from_str(line).expect("coord"))
+        .collect();
+
+    Some(best_connections_2(coords))
 }
 
 fn find(parent: &mut Vec<usize>, x: usize) -> usize {
@@ -78,7 +83,6 @@ fn best_connections(coords: Vec<Coord>, num_multiply_sets: usize, num_connection
             let o = &coords[j];
             let dist = c.dist(o);
             let item = (dist, i, j);
-            // println!("{}-{:?}, {}-{:?}: {:?}", i, c, j, o, item);
 
             if min_distances.len() < num_connections {
                 min_distances.push(item);
@@ -95,12 +99,10 @@ fn best_connections(coords: Vec<Coord>, num_multiply_sets: usize, num_connection
     let mut size: Vec<usize> = vec![1; n];
 
     let min_dists = min_distances.into_sorted_vec();
-    // println!("{:?}", min_dists);
 
     for (_, i, j) in min_dists {
         union(&mut parent, &mut size, i, j);
     }
-    // println!("{:?}", size);
 
     let mut max_sizes = BinaryHeap::new();
 
@@ -121,8 +123,43 @@ fn best_connections(coords: Vec<Coord>, num_multiply_sets: usize, num_connection
         size[root] = 0;
     }
 
-    // println!("{:?}", max_sizes);
     max_sizes.iter().fold(1, |a, &s| a * s.0 as u64)
+}
+
+fn best_connections_2(coords: Vec<Coord>) -> u64 {
+    let n = coords.len();
+    let mut distances = BinaryHeap::new();
+
+    for i in 0..n {
+        let c = &coords[i];
+
+        for j in i + 1..n {
+            let o = &coords[j];
+            let dist = c.dist(o);
+            let item = (dist, i, j);
+
+            distances.push(item);
+        }
+    }
+
+    let mut parent: Vec<usize> = (0..n).collect();
+    let mut size: Vec<usize> = vec![1; n];
+    let min_dists = distances.into_sorted_vec();
+
+    // kruskal
+    let mut last_union = 0;
+
+    for (_, i, j) in min_dists {
+        let parent_i = find(&mut parent, i);
+        let parent_j = find(&mut parent, j);
+
+        if parent_i != parent_j {
+            last_union = coords[i].x * coords[j].x;
+            union(&mut parent, &mut size, parent_i, parent_j);
+        }
+    }
+
+    last_union as u64
 }
 
 #[cfg(test)]
@@ -143,6 +180,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(25272));
     }
 }

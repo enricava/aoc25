@@ -54,7 +54,10 @@ cargo test
   - Part 1: 14.3µs @ 10000 samples
   - Part 2: 11.3µs @ 10000 samples
   - Removing the parsing step made it 4x faster, huh.
-- [ ] Day8
+- [x] Day8
+  - Part 1: 619.1µs @ 519 samples
+  - Part 2: 38.8ms @ 24 samples
+  - Union-find & Kruskal ftw! Needs cleanup.
 - [ ] Day9
 - [ ] Day10
 - [ ] Day11
