@@ -59,6 +59,10 @@ cargo test
   - Part 2: 38.8ms @ 24 samples
   - Union-find & Kruskal ftw! Needs cleanup.
 - [ ] Day9
+  - Part 1: 220.4µs @ 4822 samples
+  - Huuh, tried some convex hull stuff, but that does not make sense.
+  - What this needs is the contour, I think, so Moore Neighbor tracing and check
+  if every corner is inside?
 - [ ] Day10
 - [ ] Day11
 - [ ] Day12
