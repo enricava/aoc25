@@ -59,10 +59,13 @@ cargo test
   - [x] Part 2: 38.8ms @ 24 samples
   - Union-find & Kruskal ftw! Needs cleanup.
 - [ ] Day9
-  - [x] Part 1: 220.4µs @ 4822 samples
+  - [x] Part 1: 220.4µs @ 4822 samples (different laptop)
   - Huuh, tried some convex hull stuff, but that does not make sense.
   - What this needs is the contour, I think, so Moore Neighbor tracing and check
   if every corner is inside?
 - [ ] Day10
+  - [x] Part 1: 14.9ms @ 60 samples (different laptop)
+  - Did not read properly.
+  - Replaced my vecs with bitsets and now I need vecs for part 2...
 - [ ] Day11
 - [ ] Day12
