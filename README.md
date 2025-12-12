@@ -68,4 +68,5 @@ cargo test
   - Did not read properly.
   - Replaced my vecs with bitsets and now I need vecs for part 2...
 - [ ] Day11
+  - [x] Part 1: 269.7µs @ 3108 samples (different laptop)
 - [ ] Day12
